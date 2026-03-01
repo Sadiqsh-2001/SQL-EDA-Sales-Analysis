@@ -1,123 +1,114 @@
-SQL Sales EDA Project (Microsoft SQL Server)
-🔹 Project Overview
+Sales Data Analytics Exploration (SQL Server)
+Project Overview
 
-This project performs Exploratory Data Analysis (EDA) on a retail sales dataset using Microsoft SQL Server (T-SQL).
+This project demonstrates structured data exploration and business analysis using SQL on a dimensional data warehouse model. The objective is to analyze customer behavior, product performance, revenue trends, and key business metrics using advanced SQL techniques.
 
-The objective of this project is to analyze sales transactions, customer behavior, and product performance using structured SQL queries and business-driven analytical thinking.
+The project is designed to showcase strong SQL fundamentals, analytical thinking, and real-world data analysis skills relevant to a Data Analyst role.
 
-The dataset follows a Star Schema model, making it suitable for analytical reporting and business intelligence use cases.
+Database Details
 
-🏗 Data Model
+Database Name: datawarehouseanalytics
+Schema Used: gold
+Model Type: Star Schema (Fact + Dimension tables)
+Tables Used
+gold.fact_sales
+gold.dim_customers
+gold.dim_products
 
-The database consists of:
-gold.fact_sales – Transaction-level sales data
-gold.dim_customers – Customer dimension
-gold.dim_products – Product dimension
+Business Objectives
+The analysis focuses on:
+Exploring metadata and understanding schema structure
+Analyzing customer and product dimensions
+Evaluating time coverage of sales data
+Calculating core KPIs
+Performing magnitude analysis across business dimensions
+Identifying top and bottom performers
 
-This structure allows efficient joins and aggregation for analytical queries.
+Applying advanced SQL techniques (CTEs & Window Functions)
+Key SQL Concepts Demonstrated
 
-🎯 Project Objectives
+This project highlights the following SQL skills:
 
-Explore and understand the dataset structure
-Identify key business KPIs
-Analyze revenue distribution
-Compare performance across dimensions
-Identify top and bottom performers
-Generate business-ready insights using SQL
+Aggregate Functions (SUM, COUNT, AVG, MIN, MAX)
+GROUP BY and ORDER BY
+INNER JOIN and LEFT JOIN
+DISTINCT filtering
+UNION ALL
+Subqueries
+Common Table Expressions (CTEs)
 
-🔍 Analysis Performed
+Window Functions:
+ROW_NUMBER()
+NTILE()
+Running Total using SUM() OVER
+Ranking and Top-N Analysis
+Percentage-based segmentation
 
-1️⃣ Dimension Exploration
-
-Identified unique customer countries
-Explored product hierarchy (Category → Subcategory → Product)
-Analyzed customer demographics
-
-2️⃣ Time-Based Analysis
-
-Identified first and last order dates
-Calculated total data coverage period
-Assessed customer age distribution
-
-3️⃣ KPI & Business Metrics
-Calculated core metrics such as:
-Total Sales Revenue
+Time-based aggregation (YEAR, MONTH, DATEDIFF)
+Core Business KPIs Calculated
+Total Revenue
 Total Quantity Sold
 Average Selling Price
-Total Unique Orders
+Total Orders (Raw vs Distinct)
 Total Customers
+Total Products
 Customers Who Placed Orders
 
-4️⃣ Magnitude Analysis
+Analytical Insights Covered
 
-Compared performance across:
-Revenue by Product Category
-Customers by Country
-Customers by Gender
-Revenue by Individual Customer
-Sales Distribution Across Countries
+1. Dimension Exploration
+Countries represented in the dataset
+Product hierarchy (Category → Subcategory → Product)
 
-5️⃣ Ranking & Performance Analysis
+2. Date Analysis
+Sales coverage period
+Age distribution of customers
 
-Used SQL window functions to identify:
-Top 5 Revenue-Generating Products
-Bottom 5 Worst-Performing Products
-Top 10 Customers by Revenue
-3 Customers with the Fewest Orders
+3. Magnitude Analysis
+Customers by country and gender
+Products by category
+Revenue by category
+Revenue by customer
+Quantity distribution by country
 
-SQL Techniques Used
+4. Ranking Analysis
 
-This project demonstrates practical usage of:
+Top 5 revenue-generating products
+Bottom 5 products
+Top 10 customers by revenue
+Customers with fewest orders
 
-SELECT, DISTINCT
-GROUP BY
-JOIN (LEFT JOIN)
-COUNT(DISTINCT)
-SUM(), AVG()
-DATEDIFF()
-ROW_NUMBER() OVER(),
-RANK(),
-UNION ALL
-SUBQUERIES
+5. Advanced Analysis
+Top 2 products per country
+Top 10% revenue-generating customers
+Revenue segmentation using NTILE
+Running total revenue per country over time
 
-Aggregation & Ranking logic
+Project Structure
+sales_analytics_exploration.sql
+README.md
 
-📈 Key Business Insights
+How to Run the Script
 
-The dataset covers multiple years of transactional sales data.
-Revenue is concentrated among specific product categories.
-A small group of customers generates a significant portion of revenue.
-Product performance varies significantly across categories.
-Geographic distribution impacts sales volume.
-These insights can help businesses improve:
-Inventory planning
-Marketing strategies
-Customer targeting
-Revenue optimization
+Open SQL Server Management Studio (SSMS)
+Connect to your SQL Server instance
+Create or restore the datawarehouseanalytics database
+Ensure tables exist under the gold schema
+Run the script file sales_analytics_exploration.sql
 
-🚀 Future Enhancements
+Why This Project Matters
+This project demonstrates:
+Ability to work with dimensional models
+Strong understanding of business metrics
+Clean SQL coding practices
+Advanced window function usage
+Analytical thinking beyond basic queries
 
-Monthly & Yearly Revenue Trend Analysis
-Customer Cohort Analysis
-RFM (Recency, Frequency, Monetary) Segmentation
-Customer Lifetime Value (CLV) Calculation
-Power BI Dashboard Integration
+It reflects practical skills required in Data Analyst and Business Intelligence roles.
 
-🧠 What I Learned
 
-Writing business-focused analytical queries
-Working with star schema data models
-Implementing ranking using window functions
-Translating raw data into meaningful business insights
-Structuring SQL projects professionally for GitHub
-
-📌 Tools Used
-
-Microsoft SQL Server
-T-SQL
-Git & GitHub
-
-👨‍💻 Author
+Author
 
 Sadique Shoaib
-Data Analyst | SQL | Power BI | Data Analytics
+Data Analyst
+Skilled in SQL, Power BI, Excel, and Python
