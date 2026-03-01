@@ -1,288 +1,331 @@
-/* ============================================================
-   DATABASE & METADATA EXPLORATION
-   ============================================================ */
+/* =====================================================================
+   PROJECT: SALES DATA ANALYTICS
+   AUTHOR : Sadique Shoaib
+   ROLE   : Data Analytics Portfolio Project
 
--- Check current database
-SELECT DB_NAME();
+   DESCRIPTION:
+   This script performs structured exploration and business analysis
+   on a dimensional data warehouse model using SQL Server.
 
--- Switch to required database
-USE DataWarehouseAnalytics;
+   OBJECTIVES:
+   - Explore metadata & schema structure
+   - Analyze dimensions (customers, products,etc)
+   - Evaluate date coverage
+   - Calculate core KPIs
+   - Perform magnitude analysis
+   - Apply ranking and performance analysis
+   - Implement advanced window functions
 
--- View column structure of Customer Dimension table
-SELECT *
-FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_NAME = 'dim_customers';
-
-
-
-/* ============================================================
-   STEP 1: DIMENSION EXPLORATION
-   ============================================================ */
-
--- Identify distinct countries available in customer data
-SELECT DISTINCT country
-FROM gold.dim_customers;
--- Countries: Germany, United States, Australia, United Kingdom, Canada, France
+   DATABASE: datawarehouseanalytics
+   SCHEMA  : gold
+   ===================================================================== */
 
 
--- Explore product hierarchy (Category → Subcategory → Product)
-SELECT DISTINCT
+/* =====================================================================
+   SECTION 1: DATABASE & METADATA EXPLORATION
+   ===================================================================== */
+
+-- check current database
+select db_name();
+
+-- switch to required database
+use datawarehouseanalytics;
+
+-- inspect customer dimension structure
+select *
+from information_schema.columns
+where table_name = 'dim_customers';
+
+
+
+/* =====================================================================
+   SECTION 2: DIMENSION EXPLORATION
+   ===================================================================== */
+
+-- distinct countries in customer dataset
+select distinct country
+from gold.dim_customers;
+
+-- product hierarchy analysis (category → subcategory → product)
+select distinct
        category,
        subcategory,
        product_name
-FROM gold.dim_products
-ORDER BY category, subcategory, product_name;
--- Categories: Accessories, Bikes, Clothing, Components
+from gold.dim_products
+order by category, subcategory, product_name;
 
 
 
-/* ============================================================
-   STEP 2: DATE EXPLORATION
-   Purpose: Identify overall time coverage of sales data
-   ============================================================ */
+/* =====================================================================
+   SECTION 3: DATE RANGE ANALYSIS
+   ===================================================================== */
 
-SELECT
-    MIN(order_date) AS first_order_date,
-    MAX(order_date) AS last_order_date,
-    DATEDIFF(YEAR, MIN(order_date), MAX(order_date)) AS order_range_year
-FROM gold.fact_sales;
--- Insight: Dataset contains 4 years of sales data
+-- overall sales coverage period
+select
+    min(order_date) as first_order_date,
+    max(order_date) as last_order_date,
+    datediff(year, min(order_date), max(order_date)) as order_range_year
+from gold.fact_sales;
 
-
--- Determine oldest and youngest customers
-SELECT
-    MIN(birthdate) AS oldest_birthdate,
-    DATEDIFF(YEAR, MIN(birthdate), CURRENT_DATE) AS oldest_customer_age,
-    MAX(birthdate) AS youngest_birthdate,
-    DATEDIFF(YEAR, MAX(birthdate), CURRENT_DATE) AS youngest_customer_age
-FROM gold.dim_customers;
+-- oldest and youngest customers
+select
+    min(birthdate) as oldest_birthdate,
+    datediff(year, min(birthdate), current_date) as oldest_customer_age,
+    max(birthdate) as youngest_birthdate,
+    datediff(year, max(birthdate), current_date) as youngest_customer_age
+from gold.dim_customers;
 
 
 
-/* ============================================================
-   STEP 3: MEASURE EXPLORATION (Core Business Metrics)
-   High-level aggregation to understand overall performance
-   ============================================================ */
+/* =====================================================================
+   SECTION 4: CORE BUSINESS KPIs
+   ===================================================================== */
 
--- 1. Total Sales Revenue
-SELECT
-    SUM(quantity * price) AS total_sales
-FROM gold.fact_sales;
+-- total revenue
+select sum(quantity * price) as total_sales
+from gold.fact_sales;
 
+-- total quantity sold
+select sum(quantity) as total_items_sold
+from gold.fact_sales;
 
--- 2. Total Quantity Sold
-SELECT
-    SUM(quantity) AS total_items_sold
-FROM gold.fact_sales;
+-- average selling price
+select avg(price) as average_selling_price
+from gold.fact_sales;
 
+-- total orders (raw vs distinct)
+select
+    count(order_number) as total_order_records,
+    count(distinct order_number) as total_unique_orders
+from gold.fact_sales;
 
--- 3. Average Selling Price
-SELECT
-    AVG(price) AS average_selling_price
-FROM gold.fact_sales;
+-- total products
+select
+    count(product_key) as total_product_records,
+    count(distinct product_key) as total_unique_products
+from gold.dim_products;
 
+-- total customers
+select
+    count(customer_key) as total_customer_records,
+    count(distinct customer_key) as total_unique_customers
+from gold.dim_customers;
 
--- 4. Total Orders (Raw vs Distinct)
-SELECT
-    COUNT(order_number) AS total_order_records,
-    COUNT(DISTINCT order_number) AS total_unique_orders
-FROM gold.fact_sales;
-
-
--- 5. Total Products
-SELECT
-    COUNT(product_key) AS total_product_records,
-    COUNT(DISTINCT product_key) AS total_unique_products
-FROM gold.dim_products;
-
-
--- 6. Total Customers
-SELECT
-    COUNT(customer_key) AS total_customer_records,
-    COUNT(DISTINCT customer_key) AS total_unique_customers
-FROM gold.dim_customers;
-
-
--- 7. Customers Who Placed Orders
-SELECT
-    COUNT(DISTINCT customer_key) AS customers_with_orders
-FROM gold.fact_sales;
+-- customers who placed orders
+select count(distinct customer_key) as customers_with_orders
+from gold.fact_sales;
 
 
 
-/* ============================================================
-   CONSOLIDATED KPI REPORT
-   Combines all major metrics into a single result set
-   ============================================================ */
+/* =====================================================================
+   SECTION 5: CONSOLIDATED KPI REPORT
+   ===================================================================== */
 
-SELECT 'Total Sales' AS measure_name, SUM(sales_amount) AS measure_value FROM gold.fact_sales
-UNION ALL
-SELECT 'Total Quantity', SUM(quantity) FROM gold.fact_sales
-UNION ALL
-SELECT 'Average Price', AVG(price) FROM gold.fact_sales
-UNION ALL
-SELECT 'Total No. Orders', COUNT(DISTINCT order_number) FROM gold.fact_sales
-UNION ALL
-SELECT 'Total No. Products', COUNT(DISTINCT product_key) FROM gold.dim_products
-UNION ALL
-SELECT 'Total No. Customers', COUNT(DISTINCT customer_key) FROM gold.dim_customers;
-
+select 'total sales' as measure_name, sum(sales_amount) as measure_value from gold.fact_sales
+union all
+select 'total quantity', sum(quantity) from gold.fact_sales
+union all
+select 'average price', avg(price) from gold.fact_sales
+union all
+select 'total no. orders', count(distinct order_number) from gold.fact_sales
+union all
+select 'total no. products', count(distinct product_key) from gold.dim_products
+union all
+select 'total no. customers', count(distinct customer_key) from gold.dim_customers;
 
 
-/* ============================================================
-   STEP 4: MAGNITUDE ANALYSIS
-   Comparing performance across different dimensions
-   ============================================================ */
 
--- Total customers by country
-SELECT
+/* =====================================================================
+   SECTION 6: MAGNITUDE ANALYSIS
+   ===================================================================== */
+
+-- customers by country
+select
     country,
-    COUNT(customer_key) AS total_customers
-FROM gold.dim_customers
-GROUP BY country
-ORDER BY total_customers DESC;
+    count(customer_key) as total_customers
+from gold.dim_customers
+group by country
+order by total_customers desc;
 
-
--- Customers by gender
-SELECT
+-- customers by gender
+select
     gender,
-    COUNT(customer_key) AS customers_per_gender
-FROM gold.dim_customers
-GROUP BY gender
-ORDER BY customers_per_gender DESC;
+    count(customer_key) as customers_per_gender
+from gold.dim_customers
+group by gender
+order by customers_per_gender desc;
 
-
--- Total products by category
-SELECT
+-- products by category
+select
     category,
-    COUNT(product_key) AS total_products
-FROM gold.dim_products
-GROUP BY category
-ORDER BY total_products DESC;
+    count(product_key) as total_products
+from gold.dim_products
+group by category
+order by total_products desc;
 
-
--- Average product cost by category
-SELECT
+-- average cost by category
+select
     category,
-    AVG(cost) AS avg_cost
-FROM gold.dim_products
-GROUP BY category
-ORDER BY avg_cost DESC;
+    avg(cost) as avg_cost
+from gold.dim_products
+group by category
+order by avg_cost desc;
 
-
--- Revenue generated per category
-SELECT
+-- revenue by category
+select
     p.category,
-    SUM(f.sales_amount) AS total_revenue
-FROM gold.fact_sales f
-LEFT JOIN gold.dim_products p
-    ON f.product_key = p.product_key
-GROUP BY p.category
-ORDER BY total_revenue DESC;
+    sum(f.sales_amount) as total_revenue
+from gold.fact_sales f
+left join gold.dim_products p
+    on f.product_key = p.product_key
+group by p.category
+order by total_revenue desc;
 
-
--- Revenue generated per customer
-SELECT
+-- revenue by customer
+select
     c.customer_key,
     c.first_name,
     c.last_name,
-    SUM(f.sales_amount) AS total_revenue
-FROM gold.fact_sales f
-LEFT JOIN gold.dim_customers c
-    ON f.customer_key = c.customer_key
-GROUP BY
-    c.customer_key,
-    c.first_name,
-    c.last_name
-ORDER BY total_revenue DESC;
+    sum(f.sales_amount) as total_revenue
+from gold.fact_sales f
+left join gold.dim_customers c
+    on f.customer_key = c.customer_key
+group by c.customer_key, c.first_name, c.last_name
+order by total_revenue desc;
 
-
--- Distribution of sold quantity across countries
-SELECT
+-- quantity distribution by country
+select
     c.country,
-    SUM(f.quantity) AS total_items_sold
-FROM gold.fact_sales f
-LEFT JOIN gold.dim_customers c
-    ON f.customer_key = c.customer_key
-GROUP BY c.country
-ORDER BY total_items_sold DESC;
+    sum(f.quantity) as total_items_sold
+from gold.fact_sales f
+left join gold.dim_customers c
+    on f.customer_key = c.customer_key
+group by c.country
+order by total_items_sold desc;
 
 
 
-/* ============================================================
-   STEP 5: RANKING ANALYSIS
-   Identifying Top & Bottom Performers
-   ============================================================ */
+/* =====================================================================
+   SECTION 7: RANKING ANALYSIS
+   ===================================================================== */
 
--- Top 5 revenue-generating products
-SELECT TOP 5
+-- top 5 products by revenue
+select top 5
     p.product_name,
-    SUM(f.sales_amount) AS total_revenue
-FROM gold.dim_products p
-LEFT JOIN gold.fact_sales f
-    ON p.product_key = f.product_key
-GROUP BY p.product_name
-ORDER BY total_revenue DESC;
+    sum(f.sales_amount) as total_revenue
+from gold.dim_products p
+left join gold.fact_sales f
+    on p.product_key = f.product_key
+group by p.product_name
+order by total_revenue desc;
 
-
--- Alternative ranking using ROW_NUMBER()
-SELECT *
-FROM (
-        SELECT
+-- ranking with row_number()
+select *
+from (
+        select
             p.product_name,
-            SUM(f.sales_amount) AS total_revenue,
-            ROW_NUMBER() OVER (ORDER BY SUM(f.sales_amount) DESC) AS revenue_rank
-        FROM gold.dim_products p
-        LEFT JOIN gold.fact_sales f
-            ON p.product_key = f.product_key
-        GROUP BY p.product_name
-     ) AS ranked_products
-WHERE revenue_rank <= 5;
+            sum(f.sales_amount) as total_revenue,
+            row_number() over (order by sum(f.sales_amount) desc) as revenue_rank
+        from gold.dim_products p
+        left join gold.fact_sales f
+            on p.product_key = f.product_key
+        group by p.product_name
+     ) as ranked_products
+where revenue_rank <= 5;
 
-
--- Bottom 5 worst-performing products
-SELECT TOP 5
+-- bottom 5 products
+select top 5
     p.product_name,
-    SUM(f.sales_amount) AS total_revenue
-FROM gold.dim_products p
-LEFT JOIN gold.fact_sales f
-    ON p.product_key = f.product_key
-GROUP BY p.product_name
-ORDER BY total_revenue ASC;
+    sum(f.sales_amount) as total_revenue
+from gold.dim_products p
+left join gold.fact_sales f
+    on p.product_key = f.product_key
+group by p.product_name
+order by total_revenue asc;
 
 
 
-/* ============================================================
-   CUSTOMER PERFORMANCE ANALYSIS
-   ============================================================ */
+/* =====================================================================
+   SECTION 8: CUSTOMER PERFORMANCE ANALYSIS
+   ===================================================================== */
 
--- Top 10 customers by revenue
-SELECT TOP 10
+-- top 10 customers by revenue
+select top 10
     c.customer_key,
     c.first_name,
     c.last_name,
-    SUM(f.sales_amount) AS total_revenue
-FROM gold.fact_sales f
-LEFT JOIN gold.dim_customers c
-    ON f.customer_key = c.customer_key
-GROUP BY
-    c.customer_key,
-    c.first_name,
-    c.last_name
-ORDER BY total_revenue DESC;
+    sum(f.sales_amount) as total_revenue
+from gold.fact_sales f
+left join gold.dim_customers c
+    on f.customer_key = c.customer_key
+group by c.customer_key, c.first_name, c.last_name
+order by total_revenue desc;
 
-
--- 3 customers with the fewest orders placed
-SELECT TOP 3
+-- 3 customers with fewest orders
+select top 3
     c.customer_key,
     c.first_name,
     c.last_name,
-    COUNT(DISTINCT f.order_number) AS total_orders
-FROM gold.fact_sales f
-LEFT JOIN gold.dim_customers c
-    ON f.customer_key = c.customer_key
-GROUP BY
-    c.customer_key,
-    c.first_name,
-    c.last_name
-ORDER BY total_orders ASC;
+    count(distinct f.order_number) as total_orders
+from gold.fact_sales f
+left join gold.dim_customers c
+    on f.customer_key = c.customer_key
+group by c.customer_key, c.first_name, c.last_name
+order by total_orders asc;
+
+
+
+/* =====================================================================
+   SECTION 9: ADVANCED ANALYSIS (CTEs & WINDOW FUNCTIONS)
+   ===================================================================== */
+
+-- top 2 products per country
+with country_revenue as (
+    select
+        c.country,
+        p.product_name,
+        sum(f.quantity) as total_quantity
+    from gold.dim_customers c
+    inner join gold.fact_sales f
+        on c.customer_key = f.customer_key
+    inner join gold.dim_products p
+        on f.product_key = p.product_key
+    group by c.country, p.product_name
+),
+country_ranking as (
+    select
+        country,
+        product_name,
+        total_quantity,
+        row_number() over (
+            partition by country
+            order by total_quantity desc
+        ) as rn
+    from country_revenue
+)
+select country, product_name, total_quantity
+from country_ranking
+where rn <= 2
+order by country asc;
+
+
+
+-- running revenue per country over time
+with country_revn as (
+    select
+        c.country,
+        year(f.order_date) as order_year,
+        month(f.order_date) as order_mnth,
+        sum(f.sales_amount) as total_sales
+    from gold.dim_customers c
+    inner join gold.fact_sales f
+        on c.customer_key = f.customer_key
+    group by c.country, year(f.order_date), month(f.order_date)
+)
+select *,
+       sum(total_sales) over (
+           partition by country
+           order by order_year, order_mnth
+           rows between unbounded preceding and current row
+       ) as running_total
+from country_revn;
